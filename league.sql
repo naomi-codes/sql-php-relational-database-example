@@ -1,4 +1,4 @@
-/*2425693*/
+/*naomi lambert*/
 
 /* Create Game table*/
 CREATE TABLE IF NOT EXISTS `Game` (
@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS `loaddata` (
   `Points`INT
 )
 
+/* insert towns into town table from loaded data */
 INSERT INTO `Location` (Town)
 SELECT DISTINCT `Town` FROM `loaddata`
 UNION SELECT DISTINCT `Town`
@@ -83,26 +84,35 @@ WHERE NOT EXISTS(SELECT Town
                   FROM `loaddata`);
 
 
-
+/* populate table `Team` */
 INSERT INTO `Team` (`Name`, `Hometown`) SELECT DISTINCT `Name`, `Town` FROM `loaddata`;
 
+/* populate table `Player` */
 INSERT INTO `Player` SELECT DISTINCT `Player_ID`, `Forename`, `Surname`, `Team`, `Status` FROM `loaddata`;
 
+/* populate table `Game` */
 INSERT INTO `Game` (`Date`, `Venue`) SELECT DISTINCT `Date`, `Venue` FROM `loaddata`;
 
+/* populate table `Skill` */
 INSERT INTO `Skill` (`Player`, `Skill`) SELECT DISTINCT `Player_ID`, `Skill` FROM `loaddata`;
 
+/* populate table `Score` */
 INSERT INTO `Score` (`Game`, `Skill_ID`, `Points`) SELECT DISTINCT loaddata.Date, Skill.Skill_ID, loaddata.Points FROM `loaddata`, `Skill`
 WHERE loaddata.Player_ID = Skill.Player;
 
+/* populate table `Participant` */
 INSERT INTO `Participant` (`Team`, `Game`) SELECT DISTINCT `Team`, `Date` FROM `loaddata`;
 
+/* select all from team */
 SELECT * FROM `Team`;
 
+/* select the participation count for each time along with the team name */
 SELECT `Team`, Count(Team) FROM `Participant` GROUP BY `Team`;
 
+/* select sum of all points a player has scored and output with their name */
 SELECT Player.Forename, Player.Surname, Sum(Score.Points) FROM `Player`, `Score`, `Skill` WHERE Score.Skill_ID = Skill.Skill_ID AND Player.Player_ID = Skill.Player GROUP BY Player.Forename;
 
+/* list all the games where the Rams have played the jets
 SELECT DISTINCT A.Team AS Team1, B.Team AS Team2, A.Game
 FROM Participant A
 INNER JOIN Participant B
@@ -112,8 +122,6 @@ AND A.Team <> B.Team
 AND B.Team = 'Jets';
 
 /* select rams from the left hand table then select jets from the join table with a date that matches */
-
-
 SELECT t1.Team, COUNT(t1.Game) AS GamesPlayed, t2.PointsGained, t2.PointsGained/COUNT(t1.Game) AS AveragePoints FROM Participant AS t1
 LEFT JOIN
   (SELECT DISTINCT Participant.Team AS Team, SUM(Score.Points) AS PointsGained
@@ -128,6 +136,7 @@ LEFT JOIN
 ON t1.Team = t2.Team
 GROUP BY t1.Team;
 
+/* list skills by player */
 AS a
   LEFT JOIN (SELECT b.Player, GROUP_CONCAT(b.Skill_ID)
   FROM Skill
