@@ -1,6 +1,6 @@
 <html>
 <head>
-	<title>CSCU9B3 Assignment PHP</title>
+	<title>League Results (PHP)</title>
 
 	<style> table, th, td {
 		border: 1px solid black;
